@@ -9,12 +9,16 @@ touch /etc/profile.d/java.sh
 echo "export JAVA_HOME=/opt/jdk1.7.0_67" >> /etc/profile.d/java.sh
 echo "export JRE_HOME=/opt/jdk1.7.0_67/jre" >> /etc/profile.d/java.sh
 echo "export PATH=$PATH:/opt/jdk1.7.0_67/bin:/opt/jdk1.7.0_67/jre/bin" >> /etc/profile.d/java.sh
-#create symbolic link-- Init script for elasticsearch needs java to be in standard env
+#create symbolic link-- Init script for elasticsearch- needs java to be in standard env location
 ln -s /opt/jdk1.7.0_67/bin/java /bin/java
 
 #install mysql
 yum install mysql-server -y
 service mysqld start
+mysql -u root -e"
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY '1313' WITH GRANT OPTION;
+"
+service mysqld restart
 chkconfig mysqld on
 
 #install elasticsearch
@@ -38,6 +42,11 @@ gpgcheck=0
 enabled=1"
 echo "$REPO" > /etc/yum.repos.d/mongodb.repo
 sudo yum install -y mongodb-org
+#other option -- replace "127.0.0.1" "0.0.0.0" -- /etc/mongod.conf
+sed -i "s/127.0.0.1/0.0.0.0/" /etc/mongod.conf
+service mongod start
+#this will fail, but only cosmetically, RHEL bug 1153677
+chkconfig mongod on
 
 #ip rules
 iptables -F
